@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Entity
 @Table(name = "claim_records")
@@ -32,5 +34,6 @@ public class ClaimRecord {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
 }
 
