@@ -19,3 +19,12 @@ spring:
 
 server:
   port: 8080
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-change-me-min-32-chars-long-for-hs256-please}
+    expiration-ms: 3600000
+#
+#logging:
+#  level:
+#    org.springframework.security: DEBUG
