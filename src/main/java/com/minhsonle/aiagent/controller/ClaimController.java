@@ -20,8 +20,9 @@ public class ClaimController {
     private final ClaimService claimService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<ClaimResponse>> claim(@Valid @RequestBody ClaimRequest claimRequest) {
-         var created = claimService.create(claimRequest);
+    public ResponseEntity<ApiResponse<ClaimResponse>> claim(@Valid @RequestBody ClaimRequest claimRequest,
+                                                            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
+         var created = claimService.create(claimRequest, idempotencyKey);
          var location = ServletUriComponentsBuilder.fromCurrentRequest()
                          .path("/{id}").buildAndExpand(created.id())
                          .toUri();

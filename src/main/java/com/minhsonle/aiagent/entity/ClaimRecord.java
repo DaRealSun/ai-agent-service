@@ -35,5 +35,7 @@ public class ClaimRecord {
 
     private LocalDateTime updatedAt;
 
+    @Column(name = "idempotency_key", length = 64)
+    private String idempotencyKey;
 }
 

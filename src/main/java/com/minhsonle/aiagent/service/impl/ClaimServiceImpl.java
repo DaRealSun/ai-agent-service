@@ -9,7 +9,11 @@ import com.minhsonle.aiagent.exception.ResourceNotFoundException;
 import com.minhsonle.aiagent.repository.ClaimRecordRepository;
 import com.minhsonle.aiagent.service.ClaimService;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -28,18 +33,32 @@ public class ClaimServiceImpl implements ClaimService {
 
     @Transactional
     @Override
-    public ClaimResponse create(ClaimRequest request) {
+    public ClaimResponse create(ClaimRequest request,String idempotencyKey) {
+        //null - safe look up, skip if no header
+        if(idempotencyKey != null && !idempotencyKey.isBlank()) {
+            var existing = repo.findByIdempotencyKey(idempotencyKey);
+            if (existing.isPresent()) {
+                return ClaimResponse.fromEntity(existing.get());// short circuit
+            }
+        }
 
+        //build entity including the idem key
         ClaimRecord entity = ClaimRecord.builder().
                 claimNumber(request.claimNumber()).
                 patientName(request.patientName()).
                 diagnosisCode(request.diagnosisCode()).
                 amount(request.amount()).status(ClaimStatus.PENDING).
                 createdAt(LocalDateTime.now()).
+                idempotencyKey(idempotencyKey).
                 build();
 
-        ClaimRecord saved = repo.save(entity);
-        return ClaimResponse.fromEntity(saved);
+        try {
+            var saved = repo.save(entity);
+            return ClaimResponse.fromEntity(saved);
+        } catch (DataIntegrityViolationException e) {
+            var winner = repo.findByIdempotencyKey(idempotencyKey).orElseThrow(()->e);
+            return ClaimResponse.fromEntity(winner);
+        }
     }
 
     @Override

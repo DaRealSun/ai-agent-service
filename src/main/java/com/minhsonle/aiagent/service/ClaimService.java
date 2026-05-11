@@ -8,9 +8,10 @@ import com.minhsonle.aiagent.entity.ClaimStatus;
 import java.util.List;
 
 public interface ClaimService {
-    ClaimResponse create(ClaimRequest request);
+    ClaimResponse create(ClaimRequest request, String idempotencyKey);
     ClaimResponse getById(Long id);
     List<ClaimResponse> getByStatus(ClaimStatus status);
     List<ClaimResponse> getAll();
     ClaimResponse updateStatus(Long id, StatusUpdateRequest request);
+
 }
